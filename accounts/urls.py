@@ -12,4 +12,4 @@ urlpatterns = [
     path('profile/', ProfileView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('user-profile-view/'   , UserProfileView.as_view(), name='User-profile-view'),
-]
+]   
