@@ -4,18 +4,15 @@ import uuid
 # Create your models here.
 class Media(models.Model):
     
-    media_type_choices= [
-        ('image', 'Image'),
-        ('video', 'Video'),
-        ('audio', 'Audio'),
-        ('document', 'Document'),
-    ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    file=models .FileField(upload_to="media/media_app")
-    media_type = models.CharField(max_length=10, choices=media_type_choices)
+
+    file=models .FileField(upload_to="media_app")
+    media_type = models.CharField(max_length=10, blank=True, null=True)
+    media_extension = models.CharField(max_length=10, blank=True, null=True)
+    media_size = models.PositiveBigIntegerField(max_length=10, blank=True, null=True)
+
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255,null=True,blank=True)
     
     def __str__(self):
         return self.title
@@ -23,7 +20,6 @@ class Media(models.Model):
 class MediaDescription(models.Model):
     
     media = models.ForeignKey(Media, on_delete=models.CASCADE, related_name='descriptions')
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     language = models.CharField(max_length=10, default='en')
     description = models.TextField()
     caption = models.CharField(max_length=255, blank=True)
