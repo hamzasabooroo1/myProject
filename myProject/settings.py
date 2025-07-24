@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     #custom apps
     
     'accounts',
+    'media_app',
 ]
 
 REST_FRAMEWORK = {
