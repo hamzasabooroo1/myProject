@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Media Description{% endblock %}
+
+{% block header %}Post Media Description{% endblock %}
+
+{% block content %}
+
+
+<div class="container">
+    <h2>Submit Media Description</h2>
+
+    <form id="descriptionForm">
+        <div class="form-group">
+            <label for="language">Language:</label>
+            <input type="text" id="language" name="language" placeholder="e.g., en" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="caption">Caption:</label>
+            <input type="text" id="caption" name="caption">
+        </div>
+
+        <div class="form-group">
+            <label for="tags">Tags (comma separated):</label>
+            <input type="text" id="tags" name="tags">
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="message" style="margin-top: 10px;"></div>
+    <br>
+    <a href="/media/media_detail_view_get/" class="btn btn-primary">Go to Media Description List</a>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const mediaId = urlParams.get('media_id');
+
+    if (!mediaId) {
+        document.getElementById('message').textContent = 'Media ID is missing. Please upload a media first.';
+        document.getElementById('descriptionForm').style.display = 'none';
+    }
+
+    document.getElementById('descriptionForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('access');
+
+        const payload = {
+            language: document.getElementById('language').value,
+            description: document.getElementById('description').value,
+            caption: document.getElementById('caption').value,
+            tags: document.getElementById('tags').value,
+            media: parseInt(mediaId),
+        };
+
+        try {
+            const response = await fetch('http://192.168.11.181:8080/media/media-description-list-view/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('message').style.color = 'green';
+                document.getElementById('message').textContent = 'Description submitted successfully! Redirecting...';
+
+                setTimeout(() => {
+                    window.location.href = `/media/media_detail_view_get/${mediaId}/`;
+                }, 2000);
+            } else {
+                document.getElementById('message').style.color = 'red';
+                document.getElementById('message').textContent = JSON.stringify(data);
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('message').style.color = 'red';
+            document.getElementById('message').textContent = 'Error connecting to server.';
+        }
+    });
+</script>
+{% endblock content %}

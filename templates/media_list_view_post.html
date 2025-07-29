@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Media{% endblock %}
+
+{% block header %}Upload Media{% endblock %}
+
+{% block content %}
+<style>
+    .navbar {
+        background-color: #f2f2f2;
+        padding: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .navbar .nav-left {
+        font-weight: bold;
+        font-size: 18px;
+    }
+    .navbar .nav-right button {
+        margin-left: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="navbar">
+    <div class="nav-left">Media Manager</div>
+    <div class="nav-right">
+        <button onclick="window.location.href='/media/media_list_view_get/'">View All</button>
+        <button onclick="window.location.href='/user_logout'">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Upload Media File</h2>
+
+    <form id="uploadForm">
+        <div class="form-group">
+            <label for="file">Choose File:</label>
+            <input type="file" id="file" name="file" required>
+        </div>
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="message" style="margin-top: 10px;"></div>
+</div>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('file');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            document.getElementById('message').textContent = 'Please select a file.';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const token = localStorage.getItem('access');
+
+        try {
+            const response = await fetch('http://192.168.11.181:8080/media/media-list-view/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('message').style.color = 'green';
+                document.getElementById('message').textContent = 'Upload successful! Redirecting...';
+
+                // Redirect to description form with media ID
+                setTimeout(() => {
+                    window.location.href = `/media/media_desc_list_post/?media_id=${data.id}`;
+                }, 1000);
+            } else {
+                document.getElementById('message').style.color = 'red';
+                document.getElementById('message').textContent = data.error || 'Upload failed.';
+            }
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            document.getElementById('message').style.color = 'red';
+            document.getElementById('message').textContent = 'Error connecting to server.';
+        }
+    });
+</script>
+{% endblock content %}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Media</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            max-width: 500px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Update Media File</h2>
+    <form id="updateForm">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title">
+
+        <label for="file">Replace File (optional)</label>
+        <input type="file" id="file" name="file">
+
+        <button type="submit">Update</button>
+    </form>
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    const token = localStorage.getItem('access');
+    const mediaId = window.location.pathname.split('/').filter(Boolean).pop();
+    const apiUrl = `http://192.168.11.181:8080/media/media-detail-view/${mediaId}/`;
+
+    // Fetch current media info
+    async function loadMediaData() {
+        try {
+            const response = await fetch(apiUrl, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!response.ok) {
+                document.getElementById('message').innerText = 'Failed to load media info.';
+                return;
+            }
+
+            const data = await response.json();
+            document.getElementById('title').value = data.title || '';
+        } catch (error) {
+            console.error('Error loading media:', error);
+        }
+    }
+
+    // Submit PATCH request
+    document.getElementById('updateForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        const title = document.getElementById('title').value;
+        const file = document.getElementById('file').files[0];
+
+        if (title) formData.append('title', title);
+        if (file) formData.append('file', file);
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                body: formData
+            });
+
+            const msgBox = document.getElementById('message');
+
+            if (response.ok) {
+                msgBox.innerText = 'Media updated successfully. Redirecting...';
+                msgBox.style.color = 'green';
+
+                setTimeout(() => {
+                    window.location.href = 'http://192.168.11.181:8080/media/media_list_view_get/';
+                }, 1500); // 1.5 seconds delay before redirect
+            } else {
+                msgBox.innerText = 'Failed to update media.';
+                msgBox.style.color = 'red';
+            }
+        } catch (error) {
+            console.error('Error during update:', error);
+            document.getElementById('message').innerText = 'Something went wrong.';
+        }
+    });
+
+    loadMediaData();
+</script>
+
+</body>
+</html>

@@ -3,11 +3,28 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from .models import *
 from .serializers import *
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,render,redirect
 import mimetypes
   
 
 # Create your views here.
+
+
+def media_list_view_get(request):
+   return render(request,'media_list_view_get.html')
+
+def media_list_view_post(request):
+   return render(request,'media_list_view_post.html')
+
+def media_desc_list_post(request):
+   return render(request, 'media_desc_list_post.html')
+
+def media_detail_view_get(request, mediaId):
+   return render(request, 'media_detail_view_get.html')
+
+def media_detail_view_patch(request, id ):
+   return render(request, 'media_detail_view_patch.html')
+
 
 def extract_file_metadata(file):
    
@@ -18,13 +35,7 @@ def extract_file_metadata(file):
    mime_type, _ = mimetypes.guess_type(filename)
    media_type = get_media_type_from_mime(mime_type)
 
-   return {
-      'title': title,
-      'extension': extension,
-      'size': file_size,
-      'media_type': media_type
-   }
-   
+   return title , extension, file_size,media_type
 def get_media_type_from_mime(mime_type):
    """Classify media type from MIME type."""
    if not mime_type:
@@ -42,6 +53,8 @@ def get_media_type_from_mime(mime_type):
    ]:
       return 'document'
    return 'unknown'
+
+     
 class MediaList(APIView):
     
     permission_classes=[permissions.IsAuthenticated] 
@@ -52,18 +65,15 @@ class MediaList(APIView):
         if not file:
             return Response({'error': 'No file uploaded.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        metadata = extract_file_metadata(file)
-        if metadata['media_type'] == 'unknown':
-            return Response({'error': f'Unsupported file type: {metadata["extension"]}'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        title , extension, file_size,media_type= extract_file_metadata(file)
 
         # Create media object
         media = Media.objects.create(
             file=file,
-            title=metadata['title'],
-            media_extension=metadata['extension'],
-            media_size=metadata['size'],
-            media_type=metadata['media_type']
+            title=title,
+            media_extension=extension,
+            media_size=file_size,
+            media_type=media_type
         )
 
         return Response(MediaSerializer(media).data, status=status.HTTP_201_CREATED)

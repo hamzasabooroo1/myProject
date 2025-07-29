@@ -7,8 +7,17 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import render
 
 
+
+def homepage(request):   
+   return render(request,'login.html')
+
+
+def user_logout(request):
+   return render(request, 'logout.html')
+   
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {

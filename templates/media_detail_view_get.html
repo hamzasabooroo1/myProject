@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Media Detail View</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    img {
+      max-width: 400px;
+      height: auto;
+      margin-top: 10px;
+    }
+  </style>
+
+<div class="navbar">
+    <div class="nav-left">Media Manager</div>
+    <div class="nav-right">
+        <button onclick="window.location.href='/media/media_list_view_get/'">View All</button>
+        <button onclick="window.location.href='/user_logout'">Logout</button>
+    </div>
+</div>
+
+</head>
+<body>
+  <h1>Media Detail View</h1>
+
+  <div id="media-info">
+    <p><strong>Title:</strong> <span id="title">Loading...</span></p>
+    <p><strong>Type:</strong> <span id="type">Loading...</span></p>
+    <p><strong>Extension:</strong> <span id="ext">Loading...</span></p>
+    <p><strong>Size:</strong> <span id="size">Loading...</span> bytes</p>
+    <p><strong>Uploaded At:</strong> <span id="uploaded">Loading...</span></p>
+    <div id="preview"></div>
+  </div>
+
+  <hr>
+
+  <h2>Media Description</h2>
+  <div id="media-desc">
+    <p><strong>Language:</strong> <span id="language">Loading...</span></p>
+    <p><strong>Description:</strong> <span id="descText">Loading...</span></p>
+    <p><strong>Caption:</strong> <span id="caption">Loading...</span></p>
+    <p><strong>Tags:</strong> <span id="tags">Loading...</span></p>
+    <p><strong>Created At:</strong> <span id="created">Loading...</span></p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const pathParts = window.location.pathname.split('/');
+      const mediaId = pathParts[pathParts.length - 2]; // Gets the ID from /media_detail_view_get/15/
+
+      const token = localStorage.getItem('access');
+      if (!token) {
+        alert("Access token missing. Please login.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://192.168.11.181:8080/media/media-detail-view/${mediaId}/`, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch');
+        }
+
+        const data = await response.json();
+
+        // Fill media info
+        document.getElementById('title').innerText = data.title ?? '-';
+        document.getElementById('type').innerText = data.media_type ?? '-';
+        document.getElementById('ext').innerText = data.media_extension ?? '-';
+        document.getElementById('size').innerText = data.media_size ?? '-';
+        document.getElementById('uploaded').innerText = new Date(data.uploaded_at).toLocaleString();
+
+        // Show image if it's image type
+        const previewDiv = document.getElementById('preview');
+        if (data.media_type === 'image') {
+          const img = document.createElement('img');
+          img.src = `http://192.168.11.181:8080${data.file}`;
+          previewDiv.appendChild(img);
+        }
+
+        // Handle description
+        const desc = data.descriptions?.[0];
+        if (desc) {
+          document.getElementById('language').innerText = desc.language ?? 'N/A';
+          document.getElementById('descText').innerText = desc.description || '-';
+          document.getElementById('caption').innerText = desc.caption || '-';
+          document.getElementById('tags').innerText = desc.tags || '-';
+          document.getElementById('created').innerText = new Date(desc.created_at).toLocaleString();
+        } else {
+          document.getElementById('descText').innerText = "No description available.";
+        }
+
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert("Failed to load media data.");
+      }
+    });
+  </script>
+</body>
+</html>
